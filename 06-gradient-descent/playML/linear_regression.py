@@ -46,7 +46,7 @@ class LinearRegression:
             # return res * 2 / len(X_b)
             return X_b.T.dot(X_b.dot(theta) - y) * 2. / len(X_b) # vectorize
 
-        def gradient_descent(X_b, y, initial_theta, eta, n_iters=1e4, epsilon=1e-8):
+        def gd(X_b, y, initial_theta, eta, n_iters=1e4, epsilon=1e-8):
             theta = initial_theta
             cur_iter = 0
 
@@ -64,7 +64,44 @@ class LinearRegression:
 
         X_b = np.hstack([np.ones((len(X_train), 1)), X_train])
         initial_theta = np.zeros(X_b.shape[1])
-        self._theta = gradient_descent(X_b, y_train, initial_theta, eta, n_iters)
+        self._theta = gd(X_b, y_train, initial_theta, eta, n_iters)
+
+        self.coef_ = self._theta[1:]
+        self.intercept_ = self._theta[0]
+
+        return self
+
+    def fit_sgd(self, X_train: np.ndarray, y_train: np.ndarray, n_iters: int = 5,
+                t0: int = 5, t1: int = 50):
+        """根据训练数据集 X_train, y_train, 使用随机梯度下降法训练 Linear Regression 模型"""
+        assert X_train.shape[0] == y_train.shape[0], \
+            'the size of X_train must be equal to the size of y_train'
+        assert n_iters >= 1, 'n_iters must >= 1' # 所有样本要看几轮
+
+        def dJ_sgd(theta, X_b_i, y_i):
+            return X_b_i.T.dot(X_b_i.dot(theta) - y_i) * 2.
+
+        def sgd(X_b, y, initial_theta, n_iters, t0=5, t1=50):
+
+            def learning_rate(t):
+                return t0 / (t + t1)
+
+            theta = initial_theta
+            m = len(X_b)
+
+            for cur_iter in range(n_iters):
+                indexes = np.random.permutation(m)
+                X_b_new = X_b[indexes]
+                y_new = y[indexes]
+                for i in range(m):
+                    gradient = dJ_sgd(theta, X_b_new[i], y_new[i])
+                    theta = theta - learning_rate(cur_iter * m + i) * gradient
+
+            return theta
+
+        X_b = np.hstack([np.ones((len(X_train), 1)), X_train])
+        initial_theta = np.zeros(X_b.shape[1])
+        self._theta = sgd(X_b, y_train, initial_theta, n_iters, t0, t1)
 
         self.coef_ = self._theta[1:]
         self.intercept_ = self._theta[0]
