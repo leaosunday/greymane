@@ -57,7 +57,7 @@ class LogisticRegression:
 
         return self
 
-    def predict_probability(self, X_predict: np.ndarray) -> np.ndarray:
+    def predict_proba(self, X_predict: np.ndarray) -> np.ndarray:
         """给定待预测数据集 X_predict, 返回表示 X_predict 的结果概率向量"""
         assert self.intercept_ is not None and self.coef_ is not None, \
             'must fit before predict'
@@ -77,7 +77,7 @@ class LogisticRegression:
 
         X_b = np.hstack([np.ones(shape=(len(X_predict), 1)), X_predict])
 
-        probability = self.predict_probability(X_predict)
+        probability = self.predict_proba(X_predict)
         return np.array(probability >= 0.5, dtype=int)
 
     def score(self, X_test: np.ndarray, y_test: np.ndarray) -> float:
